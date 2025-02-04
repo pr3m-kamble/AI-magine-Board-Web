@@ -1,5 +1,5 @@
-flask
-google-generativeai
-pillow
-python-dotenv
-serverless-http
+flask==3.0.2
+google-generativeai>=0.3.0
+pillow>=10.0.0
+python-dotenv>=1.0.0
+serverless-wsgi>=3.0.0
