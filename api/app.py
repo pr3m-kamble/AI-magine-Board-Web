@@ -5,7 +5,7 @@ import os
 from io import BytesIO
 from PIL import Image
 
-app = Flask(__name__, template_folder='../templates')
+app = Flask(__name__)
 
 # Configure Gemini
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
