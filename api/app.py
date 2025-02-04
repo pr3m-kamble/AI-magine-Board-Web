@@ -1,13 +1,11 @@
 # api/app.py
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import google.generativeai as genai
 import base64
 import os
 from io import BytesIO
 from PIL import Image
 from dotenv import load_dotenv
-from flask import send_from_directory
-# Add this at the top of app.py
 
 load_dotenv()
 
@@ -18,6 +16,7 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
 
+# Static file handling for Vercel
 @app.route('/static/<path:path>')
 def serve_static(path):
     return send_from_directory(os.path.abspath('templates'), path)
