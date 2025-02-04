@@ -6,6 +6,8 @@ import os
 from io import BytesIO
 from PIL import Image
 from dotenv import load_dotenv
+from flask import send_from_directory
+# Add this at the top of app.py
 
 load_dotenv()
 
@@ -15,6 +17,10 @@ app = Flask(__name__,)  # Path adjustment
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=GEMINI_API_KEY)
 model = genai.GenerativeModel('gemini-1.5-flash')
+
+@app.route('/static/<path:path>')
+def serve_static(path):
+    return send_from_directory(os.path.abspath('templates'), path)
 
 @app.route('/')
 def index():
