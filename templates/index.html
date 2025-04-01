@@ -14,7 +14,7 @@
             text-align: center;
         }
         .container {
-            max-width: 90%;
+            max-width: 95%;
             margin: 0 auto;
         }
         .header {
@@ -35,7 +35,7 @@
             border-radius: 8px;
             touch-action: none;
             width: 100%;
-            max-width: 900px;
+            max-width: 1000px;
             height: auto;
         }
         button {
@@ -87,8 +87,13 @@
         let currentPaths = [];
 
         function resizeCanvas() {
-            canvas.width = Math.min(window.innerWidth * 0.9, 900);
-            canvas.height = canvas.width * 0.5;
+            if (window.innerWidth > 768) {
+                canvas.width = Math.min(window.innerWidth * 0.9, 1000);
+                canvas.height = canvas.width * 0.5;
+            } else {
+                canvas.width = window.innerWidth * 0.95;
+                canvas.height = window.innerHeight * 0.6;
+            }
             ctx.fillStyle = '#000000';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
