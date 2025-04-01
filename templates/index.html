@@ -1,3 +1,4 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,32 +12,26 @@
             background: #1a1a1a;
             color: white;
             font-family: Arial, sans-serif;
-            text-align: center;
         }
         .container {
-            max-width: 90%;
+            max-width: 800px;
             margin: 0 auto;
         }
         .header {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
         .controls {
             display: flex;
-            flex-wrap: wrap;
             gap: 10px;
-            justify-content: center;
-            margin-bottom: 10px;
+            align-items: center;
         }
         canvas {
             background: black;
             border-radius: 8px;
             touch-action: none;
-            width: 100%;
-            max-width: 900px;
-            height: auto;
         }
         button {
             padding: 8px 16px;
@@ -71,7 +66,7 @@
                 <button onclick="clearCanvas()">Reset</button>
             </div>
         </div>
-        <canvas id="canvas"></canvas>
+        <canvas id="canvas" width="760" height="400"></canvas>
         <div id="response"></div>
     </div>
 
@@ -86,15 +81,11 @@
         const undoStack = [];
         let currentPaths = [];
 
-        function resizeCanvas() {
-            canvas.width = Math.min(window.innerWidth * 0.9, 900);
-            canvas.height = canvas.width * 0.5;
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
+        // Set initial canvas state
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        // Size control
         document.getElementById('sizeSlider').addEventListener('input', (e) => {
             strokeSize = parseInt(e.target.value);
         });
@@ -106,12 +97,14 @@
         function startDrawing(e) {
             isDrawing = true;
             [lastX, lastY] = getPosition(e);
-            currentPaths = [{x: lastX, y: lastY}];
+            currentPaths = [];
+            currentPaths.push({x: lastX, y: lastY});
         }
 
         function draw(e) {
             if (!isDrawing) return;
             const [x, y] = getPosition(e);
+            
             ctx.beginPath();
             ctx.moveTo(lastX, lastY);
             ctx.lineTo(x, y);
@@ -119,6 +112,7 @@
             ctx.lineWidth = strokeSize;
             ctx.lineCap = 'round';
             ctx.stroke();
+            
             currentPaths.push({x, y});
             [lastX, lastY] = [x, y];
         }
@@ -132,17 +126,23 @@
 
         function undo() {
             if (undoStack.length > 0) {
+                // Redraw everything except last action
                 ctx.fillStyle = '#000000';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
                 undoStack.pop();
-                undoStack.forEach(drawPath);
+                undoStack.forEach(path => {
+                    drawPath(path);
+                });
             }
         }
 
         function drawPath(path) {
             ctx.beginPath();
             ctx.moveTo(path[0].x, path[0].y);
-            path.forEach(point => ctx.lineTo(point.x, point.y));
+            path.forEach(point => {
+                ctx.lineTo(point.x, point.y);
+            });
             ctx.strokeStyle = strokeColor;
             ctx.lineWidth = strokeSize;
             ctx.stroke();
@@ -157,33 +157,49 @@
 
         function getPosition(e) {
             const rect = canvas.getBoundingClientRect();
-            return [(e.clientX - rect.left) * (canvas.width / rect.width),
-                    (e.clientY - rect.top) * (canvas.height / rect.height)];
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return [
+                (e.clientX - rect.left) * scaleX,
+                (e.clientY - rect.top) * scaleY
+            ];
         }
 
         async function analyze() {
             const image = canvas.toDataURL();
-            document.getElementById('response').textContent = 'Analyzing...';
+            const responseDiv = document.getElementById('response');
+            responseDiv.textContent = 'Analyzing...';
+            
             try {
                 const response = await fetch('/analyze', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ image })
                 });
+                
                 const result = await response.json();
                 if (result.error) throw result.error;
-                document.getElementById('response').textContent = result.result;
+                responseDiv.textContent = result.result;
             } catch (error) {
-                document.getElementById('response').textContent = 'Error: ' + error;
+                responseDiv.textContent = 'Error: ' + error;
             }
         }
 
+        // Event listeners
         canvas.addEventListener('mousedown', startDrawing);
         canvas.addEventListener('mousemove', draw);
         canvas.addEventListener('mouseup', stopDrawing);
         canvas.addEventListener('mouseout', stopDrawing);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e.touches[0]); });
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
+        
+        // Touch support
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startDrawing(e.touches[0]);
+        });
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            draw(e.touches[0]);
+        });
         canvas.addEventListener('touchend', stopDrawing);
     </script>
 </body>
